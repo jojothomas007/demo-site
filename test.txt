@@ -1,0 +1,15 @@
+
+az group create -g sel-grid-res-grp -l "centralus"
+az aks create -g sel-grid-res-grp -n sel-grid-cluster --generate-ssh-keys
+az aks get-credentials -g sel-grid-res-grp -n sel-grid-cluster
+az aks browse -g sel-grid-res-grp -n sel-grid-cluster
+az aks delete -g sel-grid-res-grp -n sel-grid-cluster
+
+kubectl run sel-grid-cluster --image selenium/hub:3.3.0 --port 4444
+kubectl run sel-grid-cluster --image selenium/hub:3.141 --port 4444
+kubectl expose deployment sel-grid-cluster --type=LoadBalancer --name=selenium-hub
+kubectl get service selenium-hub --watch
+kubectl run selenium-node-chrome --image selenium/node-chrome:3.3.1 --env="HUB_PORT_4444_TCP_ADDR=selenium-hub" --env="HUB_PORT_4444_TCP_PORT=4444"
+kubectl scale deployment selenium-node-chrome --replicas=4
+
+az group delete -g MC_sel-grid-res-grp_sel-grid-cluster-res-grp_centralus
